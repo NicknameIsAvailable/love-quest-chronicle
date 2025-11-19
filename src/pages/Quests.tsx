@@ -12,10 +12,21 @@ import questsData from "@/data/quests.json";
 
 const Quests = () => {
   const navigate = useNavigate();
-  const [quests, setQuests] = useState(questsData.quests);
+  const [quests, setQuests] = useState(() => {
+    const saved = localStorage.getItem("questsProgress");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return questsData.quests;
+  });
   const [selectedQuest, setSelectedQuest] = useState<any>(null);
   const [codeInput, setCodeInput] = useState("");
   const [isUnlocking, setIsUnlocking] = useState(false);
+
+  // Сохраняем прогресс в localStorage при изменении
+  useEffect(() => {
+    localStorage.setItem("questsProgress", JSON.stringify(quests));
+  }, [quests]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
