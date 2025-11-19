@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import questsData from "@/data/quests.json";
+import confetti from "canvas-confetti";
 
 const Quest = () => {
   const { id } = useParams();
@@ -55,6 +56,13 @@ const Quest = () => {
       setIsSubmitting(false);
       
       if (allCorrect) {
+        // Конфетти эффект
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        
         toast.success("Отлично! Все ответы верны! 🎉");
         setShowHint(true);
       } else {
@@ -110,7 +118,7 @@ const Quest = () => {
               value={answers[question.id]?.toString()}
               onValueChange={(value) => handleAnswerChange(question.id, parseInt(value))}
             >
-              {question.options.map((option: string, optionIndex: number) => (
+              {question.options.map((option: any, optionIndex: number) => (
                 <div
                   key={optionIndex}
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors"
@@ -123,7 +131,15 @@ const Quest = () => {
                     htmlFor={`q${question.id}-option${optionIndex}`}
                     className="flex-1 cursor-pointer text-foreground"
                   >
-                    {option}
+                    {option.type === "image" ? (
+                      <img 
+                        src={option.content} 
+                        alt={`Вариант ${optionIndex + 1}`}
+                        className="w-full max-w-[200px] h-auto rounded-lg"
+                      />
+                    ) : (
+                      option.content
+                    )}
                   </Label>
                 </div>
               ))}
