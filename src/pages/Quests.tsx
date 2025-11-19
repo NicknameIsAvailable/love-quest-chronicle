@@ -3,41 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-// Mock data - в будущем это будет из базы данных
-const quests = [
-  {
-    id: 1,
-    title: "Наш первый фильм",
-    description: "Викторина о фильме, который мы смотрели вместе",
-    status: "available", // available, locked, completed
-    difficulty: "Легко",
-  },
-  {
-    id: 2,
-    title: "Любимые моменты",
-    description: "Угадай, что я люблю в тебе больше всего",
-    status: "locked",
-    difficulty: "Средне",
-  },
-  {
-    id: 3,
-    title: "Наша история",
-    description: "Вспомни важные даты нашей жизни",
-    status: "locked",
-    difficulty: "Сложно",
-  },
-  {
-    id: 4,
-    title: "Тайные желания",
-    description: "Узнай, о чем я мечтаю",
-    status: "locked",
-    difficulty: "Средне",
-  },
-];
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import questsData from "@/data/quests.json";
 
 const Quests = () => {
   const navigate = useNavigate();
+  const [quests, setQuests] = useState(questsData.quests);
+  const [selectedQuest, setSelectedQuest] = useState<any>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [isUnlocking, setIsUnlocking] = useState(false);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -63,12 +41,46 @@ const Quests = () => {
 
   const handleQuestClick = (quest: any) => {
     if (quest.status === "locked") {
-      // В будущем откроем диалог для ввода кода
+      setSelectedQuest(quest);
+      setCodeInput("");
       return;
     }
     if (quest.status === "available") {
       navigate(`/quest/${quest.id}`);
     }
+  };
+
+  const handleUnlock = () => {
+    if (!codeInput.trim()) {
+      toast.error("Введи код");
+      return;
+    }
+
+    if (codeInput !== selectedQuest.unlockCode) {
+      toast.error("Неверный код. Попробуй ещё раз!");
+      return;
+    }
+
+    setIsUnlocking(true);
+    
+    setTimeout(() => {
+      // Разблокируем задание
+      setQuests(prev =>
+        prev.map(q =>
+          q.id === selectedQuest.id ? { ...q, status: "available" } : q
+        )
+      );
+      
+      toast.success("Задание разблокировано! 🎉");
+      setSelectedQuest(null);
+      setCodeInput("");
+      setIsUnlocking(false);
+      
+      // Открываем задание
+      setTimeout(() => {
+        navigate(`/quest/${selectedQuest.id}`);
+      }, 500);
+    }, 1000);
   };
 
   return (
@@ -163,6 +175,42 @@ const Quests = () => {
 
       {/* Bottom padding for mobile */}
       <div className="h-8" />
+
+      {/* Unlock Dialog */}
+      <Dialog open={!!selectedQuest} onOpenChange={() => setSelectedQuest(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Введи код разблокировки</DialogTitle>
+            <DialogDescription className="text-center">
+              Найди приз в реальном мире и введи код с бумажки
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">6-значный код</Label>
+              <Input
+                id="code"
+                type="text"
+                placeholder="000000"
+                maxLength={6}
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value.replace(/\D/g, ""))}
+                className="text-center text-2xl tracking-widest"
+                disabled={isUnlocking}
+              />
+            </div>
+            
+            <Button 
+              onClick={handleUnlock} 
+              className="w-full"
+              disabled={isUnlocking || codeInput.length !== 6}
+            >
+              {isUnlocking ? "Проверяю..." : "Разблокировать"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
