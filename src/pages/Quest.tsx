@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,53 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-
-// Mock data для викторины
-const questData: any = {
-  1: {
-    title: "Наш первый фильм",
-    description: "Ответь на вопросы о нашем первом совместном фильме",
-    questions: [
-      {
-        id: 1,
-        question: "Какой фильм мы смотрели в первый раз вместе?",
-        options: [
-          "Титаник",
-          "Начало",
-          "Ла-Ла Ленд",
-          "Великий Гэтсби",
-        ],
-        correctAnswer: 2, // индекс правильного ответа
-      },
-      {
-        id: 2,
-        question: "Что ты сказал/а после фильма?",
-        options: [
-          "Это было скучно",
-          "Потрясающе!",
-          "Давай пересмотрим",
-          "Я плакал/а",
-        ],
-        correctAnswer: 1,
-      },
-      {
-        id: 3,
-        question: "Где мы смотрели этот фильм?",
-        options: [
-          "В кинотеатре",
-          "У меня дома",
-          "У тебя дома",
-          "Онлайн вместе",
-        ],
-        correctAnswer: 0,
-      },
-    ],
-    hint: {
-      title: "Подсказка к сюрпризу",
-      poem: "Там, где мы впервые встретились взглядами,\nГде кофе ароматный, как награда.\nПод столиком, что у окна стоит,\nТвой первый приз от сердца ждёт.",
-    },
-  },
-};
+import questsData from "@/data/quests.json";
 
 const Quest = () => {
   const { id } = useParams();
@@ -62,7 +16,8 @@ const Quest = () => {
   const [showHint, setShowHint] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const quest = questData[id || "1"];
+  const questItem = questsData.quests.find(q => q.id === Number(id));
+  const quest = questItem?.questData;
 
   if (!quest) {
     return (
